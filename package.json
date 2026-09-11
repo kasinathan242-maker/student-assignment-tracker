@@ -1,0 +1,19 @@
+{
+  "name": "student-assignment-management-system",
+  "version": "1.0.0",
+  "description": "Full-Featured Student Assignment Management System with Admin, Teacher, and Student Portals",
+  "scripts": {
+    "dev": "npm --prefix frontend run dev",
+    "build": "npm --prefix frontend run build",
+    "preview": "npm --prefix frontend run preview"
+  },
+  "keywords": [
+    "mern",
+    "react",
+    "assignment-tracker",
+    "education",
+    "academic-system"
+  ],
+  "author": "Antigravity Team",
+  "license": "MIT"
+}
