@@ -39,3 +39,11 @@ Thumbs.db
 .system_generated/
 scratch/
 *.tmp
+
+# Local runtime data (database, uploads, captured mail) and tool output
+.data/
+.playwright-mcp/
+apps/web/test-results/
+apps/web/playwright-report/
+coverage/
+.github/workflows/
