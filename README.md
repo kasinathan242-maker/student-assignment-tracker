@@ -1,88 +1,258 @@
 # Student Assignment Tracker
 
-A multi-tenant platform where institutions run courses, teachers publish and grade assignments, and students submit work, track deadlines and receive feedback.
+A complete, production-ready full-stack MERN application for academic course management, assignment lifecycle tracking, automated deadline computation, submission receipts, and rubric-based grading.
 
-- **Students**: one list of every assignment and deadline, autosaved drafts, submission receipts, resubmissions and extension requests, released grades with rubric feedback, calendar export, personal data export.
-- **Teachers**: courses, sections and rosters (including CSV import), a 4-step assignment wizard with scheduling, late and resubmission policies, a submission inbox, a rubric grading workspace, audited grade corrections, held grade release, extension decisions, announcements and course reports.
-- **Organization administrators**: members, roles and invitations, departments, organization settings, aggregate dashboards, a searchable and exportable audit log, and audited "break-glass" access to records.
-- **Platform administrators**: organization registry, platform roles, account suspension, cross-tenant audit and service health.
+---
 
-## Stack
+## 1. Project Overview
 
-| Layer           | Technology                                                                                                                                   |
-| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| Web             | React 19, Vite 8, React Router 8, TanStack Query 5, Tailwind CSS 4, Radix primitives, Phosphor icons, React Hook Form + Zod, Recharts, Luxon |
-| API             | Node.js 22+, Express 5, Mongoose 9 (MongoDB replica set), Zod 4, Pino, jose (JWT), Argon2id                                                  |
-| Background work | Transactional outbox and scheduler in MongoDB (`apps/api/src/jobs`), run inline or as a separate worker process                              |
-| Integrations    | SMTP email, S3-compatible storage, ClamAV scanning, optional Redis for distributed rate limits, error webhook                                |
-| Tests           | Vitest (unit and integration with an in-memory replica set), React Testing Library, Playwright + axe-core                                    |
+Student Assignment Tracker solves academic submission and grading friction by providing:
+- **Zero-Ambiguity Deadlines**: Dynamic countdown calculations that differentiate between "Due today", "Due tomorrow", "N days remaining", and "Overdue by N days".
+- **Audited Lifecycle State**: Assignments dynamically derive their status (`pending`, `overdue`, `submitted`, `submitted_late`, `reviewed`) without storing stale state in the database.
+- **Fair Resubmission Policy**: Students can revise and update their submission prior to instructor review. Once reviewed and graded, submissions are immutably locked.
+- **Dual-Perspective Role Security**: Strict server-side role validation preventing privilege escalation. Instructors register only via an authorized institutional invite code.
 
-## Repository layout
+---
+
+## 2. Features by Role
+
+### For Students
+- **Aggregated Performance Dashboard**: Immediate metrics for total coursework, pending tasks, overdue alerts, on-time vs. late submissions, and cumulative graded percentage.
+- **Filterable Assignment Catalog**: Search across titles and subjects, sort by earliest/latest deadline or creation date, and view live status badges with countdown timers.
+- **Interactive Submission Workspace**: Submit verifiable public links (GitHub, Google Drive, etc.) with optional student notes. Resubmit updates freely before review. Receives proactive late submission warning banners if submitting past deadline.
+- **Submission History Ledger**: Tabular audit of every submission, timestamp, on-time/late indicator, numerical score (`marks / maxMarks`), and qualitative instructor feedback.
+
+### For Teachers (Instructors)
+- **Instructional Command Center**: Real-time counters for active assignments, total submissions received, pending reviews requiring grading, enrolled student count, and next 5 upcoming deadlines.
+- **Assignment Authoring Wizard**: Create and edit course assignments with title character bounds, subject classification, point maximums (1–1000), and future-dated deadline enforcement.
+- **Submission Inbox & Grading Workspace**: View all submissions for an assignment with one-click URL access, timing indicators, and inline rubric evaluation dialogs for marks and detailed feedback.
+- **Unsubmitted Roster Tracking**: Automated identification of enrolled students who have not yet turned in work for any given assignment.
+- **Cascading Deletions**: Deleting an assignment cleanly purges all associated submissions in a single operation.
+
+---
+
+## 3. Technology Stack
+
+| Layer | Technologies |
+| :--- | :--- |
+| **Backend** | Node.js 20+, Express 4, Mongoose 8, ES Modules (`"type": "module"`) |
+| **Authentication & Security** | JWT (jsonwebtoken), bcryptjs, Helmet, CORS, Express-Validator |
+| **Database** | MongoDB (Local replica set or MongoDB Atlas) |
+| **Frontend** | React 18, Vite, React Router DOM v6, Axios |
+| **Styling** | Vanilla CSS (CSS variables, responsive flexbox/grid, glassmorphism, no UI library dependencies) |
+| **Typography** | Plus Jakarta Sans & JetBrains Mono (via Google Fonts) |
+
+---
+
+## 4. Folder Structure
 
 ```
-apps/
-  api/        REST API (/api/v1), worker, scripts (seed, bootstrap, OpenAPI, perf, storage reconciliation)
-  web/        React SPA, component tests, Playwright E2E (e2e/)
-packages/
-  shared/     Zod schemas, DTO types and pure domain rules shared by both apps
-  config/     TypeScript base configs
-  eslint-config/
-docs/         Architecture, domain rules, security, operations, API (openapi.json) and more
-scripts/      Launchers: dev (watch mode) and start (built app on one port)
+student-assignment-tracker/
+├── README.md
+├── .gitignore
+├── backend/
+│   ├── config/
+│   │   └── db.js
+│   ├── controllers/
+│   │   ├── authController.js
+│   │   ├── assignmentController.js
+│   │   ├── submissionController.js
+│   │   └── dashboardController.js
+│   ├── middleware/
+│   │   ├── authMiddleware.js
+│   │   ├── roleMiddleware.js
+│   │   ├── validate.js
+│   │   └── errorHandler.js
+│   ├── models/
+│   │   ├── User.js
+│   │   ├── Assignment.js
+│   │   └── Submission.js
+│   ├── routes/
+│   │   ├── authRoutes.js
+│   │   ├── assignmentRoutes.js
+│   │   ├── submissionRoutes.js
+│   │   └── dashboardRoutes.js
+│   ├── utils/
+│   │   ├── asyncHandler.js
+│   │   ├── generateToken.js
+│   │   └── status.js
+│   ├── seed.js
+│   ├── .env.example
+│   ├── package.json
+│   └── server.js
+└── frontend/
+    ├── src/
+    │   ├── components/
+    │   │   ├── Navbar.jsx
+    │   │   ├── AssignmentCard.jsx
+    │   │   ├── DashboardCard.jsx
+    │   │   ├── ProtectedRoute.jsx
+    │   │   ├── StatusBadge.jsx
+    │   │   ├── Loader.jsx
+    │   │   └── EmptyState.jsx
+    │   ├── context/
+    │   │   └── AuthContext.jsx
+    │   ├── pages/
+    │   │   ├── Home.jsx
+    │   │   ├── Login.jsx
+    │   │   ├── Register.jsx
+    │   │   ├── NotFound.jsx
+    │   │   ├── student/
+    │   │   │   ├── StudentDashboard.jsx
+    │   │   │   ├── Assignments.jsx
+    │   │   │   ├── AssignmentDetails.jsx
+    │   │   │   └── MySubmissions.jsx
+    │   │   └── teacher/
+    │   │       ├── TeacherDashboard.jsx
+    │   │       ├── CreateAssignment.jsx
+    │   │       ├── EditAssignment.jsx
+    │   │       ├── ManageAssignments.jsx
+    │   │       └── Submissions.jsx
+    │   ├── services/
+    │   │   └── api.js
+    │   ├── utils/
+    │   │   └── deadline.js
+    │   ├── styles/
+    │   │   └── global.css
+    │   ├── App.jsx
+    │   └── main.jsx
+    ├── .env.example
+    ├── index.html
+    ├── package.json
+    └── vite.config.js
 ```
 
-## Quick start (runs entirely on this machine, no Docker)
+---
 
-Requirements: Node.js 22.12+ and npm 10+.
+## 5. Status Logic Explanation
+
+Assignment statuses are derived dynamically on-the-fly (`backend/utils/status.js`, mirrored on frontend `frontend/src/utils/deadline.js`). "Pending" or "Overdue" states are **never statically written to the database**, ensuring zero stale status bugs when deadlines pass:
+
+| Derived Status | Condition |
+| :--- | :--- |
+| `pending` | No submission exists AND current time $\le$ assignment deadline |
+| `overdue` | No submission exists AND current time $>$ assignment deadline |
+| `submitted` | Submission exists, `isLate === false`, AND `status === "submitted"` |
+| `submitted_late` | Submission exists, `isLate === true`, AND `status === "submitted"` |
+| `reviewed` | Submission exists AND `status === "reviewed"` (marks & feedback assigned) |
+
+### Remaining Time Calculation Rules
+- If now $>$ deadline: `"Overdue by N days"` or `"Overdue by N hours"`
+- If same calendar day: `"Due today"`
+- If next calendar day: `"Due tomorrow"`
+- If under 24 hours: `"N hours remaining"`
+- Otherwise: `"N days remaining"`
+
+---
+
+## 6. API Reference
+
+All endpoints are prefixed with `/api` and return standardized JSON objects.
+
+### Authentication (`/api/auth`)
+| Method | Endpoint | Access | Description |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/api/auth/register` | Public | Register student or teacher (teacher requires valid `inviteCode`) |
+| `POST` | `/api/auth/login` | Public | Authenticate user; returns JWT token and user profile |
+| `GET` | `/api/auth/me` | Authenticated | Retrieve current authenticated user profile |
+
+### Assignments (`/api/assignments`)
+| Method | Endpoint | Access | Description |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/assignments` | Authenticated | Query assignments (`search`, `subject`, `sort`, `page`, `limit`). Students receive derived statuses; teachers receive authored assignments and submission counts. |
+| `GET` | `/api/assignments/:id` | Authenticated | Get assignment details. For students, embeds their own submission record. |
+| `POST` | `/api/assignments` | Teacher | Author a new assignment. Deadline must be in the future. |
+| `PUT` | `/api/assignments/:id` | Teacher (Owner) | Modify assignment details. Only author can update. |
+| `DELETE` | `/api/assignments/:id` | Teacher (Owner) | Delete assignment and cascade-delete all its submissions. |
+
+### Submissions (`/api/submissions`)
+| Method | Endpoint | Access | Description |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/api/submissions` | Student | Submit work (`assignmentId`, `submissionLink`, `comments`). Updates existing submission if unreviewed; rejects with 400 if already reviewed. |
+| `GET` | `/api/submissions/my` | Student | Retrieve student's submission history populated with assignment details. |
+| `GET` | `/api/submissions/assignment/:id` | Teacher (Owner) | Retrieve all submissions for the assignment plus roster of unsubmitted students. |
+| `PUT` | `/api/submissions/:id/review` | Teacher (Owner) | Grade submission (`marks`, `feedback`). Marks enforced $0 \le marks \le maxMarks$. |
+
+### Dashboard & System
+| Method | Endpoint | Access | Description |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/dashboard/student` | Student | Summary counters: total, pending, overdue, submitted, late, reviewed, avg score. |
+| `GET` | `/api/dashboard/teacher` | Teacher | Instructor metrics: total assignments, students, submissions, pending reviews, upcoming deadlines. |
+| `GET` | `/api/health` | Public | Service health probe returning `{ "status": "ok" }`. |
+
+---
+
+## 7. Setup & Execution Guide
+
+### Prerequisites
+- Node.js 20+
+- MongoDB instance (e.g., local MongoDB on `127.0.0.1:27017` or MongoDB Atlas URI)
+
+### Step 1: Configure Environment Variables
+
+**Backend (`backend/.env`):**
+```bash
+PORT=5000
+MONGO_URI=mongodb://127.0.0.1:27017/assignment_tracker
+JWT_SECRET=super_secret_production_ready_jwt_key_983749283749
+JWT_EXPIRES_IN=7d
+CLIENT_URL=http://localhost:5173
+TEACHER_INVITE_CODE=TEACHER2026
+```
+
+**Frontend (`frontend/.env`):**
+```bash
+VITE_API_URL=http://localhost:5000/api
+```
+
+### Step 2: Install Dependencies
 
 ```bash
+# In backend/
+cd backend
 npm install
-cp .env.example .env                 # development defaults; no secrets needed locally
-npm run db:local                     # terminal 1: local MongoDB replica set (persistent, in .data/)
-npm run seed                         # demo data; prints the shared demo password
-npm run dev                          # terminal 2: API on :4000 (with worker) + web on :5173
+
+# In frontend/
+cd ../frontend
+npm install
 ```
 
-Open http://localhost:5173/login and choose the **Student**, **Teacher** or **HOD / Admin** login (each admits only accounts with that role), then sign in with a seeded account (`kavya@northfield.test` for a student, `priya@northfield.test` for a teacher, `admin@northfield.test` for the HOD / Admin login, `platform@demo.test` for the platform administrator, also through the HOD / Admin login). Set `SEED_PASSWORD` before seeding to choose the password. Emails such as invitations and password resets appear at http://localhost:5173/dev/mail.
+### Step 3: Seed Database
 
-To run the optimised build instead of watch mode, keep `npm run db:local` running and use `npm run build` then `npm start`: the API serves the web app, the worker runs inline, and everything is on http://localhost:4000. See [docs/deployment.md](docs/deployment.md).
+```bash
+cd backend
+npm run seed
+```
 
-## Common commands
+This clears old records and seeds:
+- 1 Teacher: `teacher@demo.com` / `teacher123`
+- 3 Students: `student1@demo.com`, `student2@demo.com`, `student3@demo.com` / `student123`
+- 5 Assignments with past and future deadlines
+- Submissions illustrating every lifecycle status (`pending`, `overdue`, `submitted`, `submitted_late`, `reviewed`)
 
-| Command                                                       | What it does                                                                     |
-| ------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| `npm run dev`                                                 | API and web in watch mode                                                        |
-| `npm run build` then `npm start`                              | Production build served by one process on http://localhost:4000                  |
-| `npm run verify`                                              | Format check, lint, typecheck, all unit and integration tests, production builds |
-| `npm test`                                                    | Shared, API (integration, in-memory MongoDB) and web test suites                 |
-| `npm run test:e2e`                                            | Playwright journey and accessibility suite (starts its own isolated stack)       |
-| `npm run openapi`                                             | Regenerate `docs/openapi.json` from the route definitions                        |
-| `npm run perf -w @sat/api`                                    | Performance measurement against a 27k-submission dataset                         |
-| `npm run bootstrap:platform-admin -- --email you@example.org` | Create or promote the first platform administrator                               |
+### Step 4: Run Development Servers
 
-## Verification status
+**Terminal 1 (Backend API on :5000):**
+```bash
+cd backend
+npm run dev
+```
 
-All of the following were run and passed on the final code:
+**Terminal 2 (Frontend Client on :5173):**
+```bash
+cd frontend
+npm run dev
+```
 
-- Lint (ESLint, zero warnings), Prettier, TypeScript in every workspace, production builds of both apps.
-- 34 shared domain unit tests, 100 API tests (unit and HTTP integration against a real MongoDB replica set, including authorization, tenant isolation, injection and worker reliability), 24 web unit and component tests.
-- 22 Playwright tests: the 20 required end-to-end scenarios across all roles, plus axe WCAG 2.2 AA scans of 12 screens (public pages in light and dark themes).
-- Performance budgets: every measured operation p95 under 90 ms locally (see [docs/performance.md](docs/performance.md)).
-- `npm audit --omit=dev`: 0 vulnerabilities.
+Open `http://localhost:5173` in your browser.
 
-## Documentation
+---
 
-- [Architecture](docs/architecture.md) and [domain rules](docs/domain-rules.md) (deadlines, submission states, grading)
-- [Security model](docs/security.md)
-- [Configuration reference](docs/configuration.md) and [development guide](docs/development.md)
-- [Deployment](docs/deployment.md) and [operations runbooks](docs/operations.md)
-- [API](docs/api.md) ([OpenAPI document](docs/openapi.json)), [metrics definitions](docs/metrics.md)
-- [Testing](docs/testing.md), [performance](docs/performance.md), [accessibility](docs/accessibility.md), [design system](docs/design.md)
+## 8. Demo Credentials
 
-## What needs external credentials
-
-Nothing is required for local development. Production needs: an SMTP provider, an S3-compatible bucket, a MongoDB replica set, TLS at the edge, and generated `JWT_ACCESS_SECRET` / `CSRF_SECRET`. ClamAV, Redis and an error-reporting webhook are optional and documented in [docs/configuration.md](docs/configuration.md).
-
-## License
-
-MIT
+| Role | Email | Password | Details |
+| :--- | :--- | :--- | :--- |
+| **Instructor** | `teacher@demo.com` | `teacher123` | Can create assignments, view submission inbox, grade, and review. |
+| **Student 1** | `student1@demo.com` | `student123` | Alice: Has on-time submission and graded review. |
+| **Student 2** | `student2@demo.com` | `student123` | Bob: Has late submission and graded review. |
+| **Student 3** | `student3@demo.com` | `student123` | Charlie: Has pending and overdue assignments with no submissions yet. |

@@ -1,8 +1,0 @@
-node_modules
-dist
-coverage
-package-lock.json
-.data
-apps/web/playwright-report
-apps/web/test-results
-docs/openapi.json

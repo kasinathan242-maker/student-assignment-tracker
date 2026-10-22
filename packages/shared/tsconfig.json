@@ -1,4 +1,0 @@
-{
-  "extends": "@sat/config/tsconfig.node.json",
-  "include": ["src"]
-}

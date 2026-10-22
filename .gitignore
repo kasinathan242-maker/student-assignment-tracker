@@ -1,49 +1,23 @@
 # Dependencies
 node_modules/
-**/node_modules/
 
-# Production build outputs
-dist/
-**/dist/
-build/
-**/build/
-
-# Environment variables
+# Environment files
 .env
 .env.local
 .env.*.local
-**/.env
-**/.env.*
-!.env.example
-!**/.env.example
+
+# Production build outputs
+dist/
+build/
 
 # Logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
-lerna-debug.log*
-*.log
 
-# Editor and OS files
-.DS_Store
-Thumbs.db
+# Editor and OS
 .vscode/
 .idea/
-*.swp
-*.swo
-
-# Temporary & cache files
-.tempmediaStorage/
-.user_uploaded/
-.system_generated/
-scratch/
-*.tmp
-
-# Local runtime data (database, uploads, captured mail) and tool output
-.data/
-.playwright-mcp/
-apps/web/test-results/
-apps/web/playwright-report/
-coverage/
-.github/workflows/
+.DS_Store
+Thumbs.db
